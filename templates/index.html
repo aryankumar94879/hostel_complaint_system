@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HostelSense AI — Intelligent Complaint Resolution & Reasoning System</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons for crisp UI icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-microchip"></i>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">HostelSense <span class="badge-ai">AI 2.6</span></div>
+        <div class="brand-subtitle">Autonomous Complaint Resolution & Policy Reasoning System</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="dashboard">
+        <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+      </button>
+      <button class="nav-tab" data-tab="student-portal">
+        <i class="fa-solid fa-file-circle-plus"></i> <span>Student Portal</span>
+      </button>
+      <button class="nav-tab" data-tab="workflow-engine">
+        <i class="fa-solid fa-diagram-project"></i> <span>Workflows & Rules</span>
+      </button>
+      <button class="nav-tab" data-tab="staff-dispatch">
+        <i class="fa-solid fa-users-gear"></i> <span>Staff Dispatch</span>
+      </button>
+      <button class="nav-tab" data-tab="rag-assistant">
+        <i class="fa-solid fa-robot"></i> <span>Responsible RAG</span>
+      </button>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button id="btnRunWatchdog" class="btn btn-sm btn-outline-warning" title="Execute Autonomous Agent SLA Heartbeat Check">
+        <i class="fa-solid fa-shield-halved"></i> <span>Run SLA Watchdog</span>
+      </button>
+      <div class="live-indicator" title="Connected to Autonomous Reasoning Engine">
+        <span class="pulsing-dot"></span>
+        <span class="text-xs">Agent Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Body -->
+  <main class="app-content">
+
+    <!-- ================= TAB 1: DASHBOARD ================= -->
+    <section id="tab-dashboard" class="tab-pane active">
+      <!-- Metric Cards Banner -->
+      <div class="metrics-grid">
+        <div class="metric-card glass-panel border-cyan">
+          <div class="metric-header">
+            <span class="metric-label">ACTIVE TICKETS</span>
+            <i class="fa-solid fa-inbox text-cyan"></i>
+          </div>
+          <div class="metric-value text-cyan" id="metricActiveTickets">--</div>
+          <div class="metric-footnote">Across 4 Residential Blocks</div>
+        </div>
+
+        <div class="metric-card glass-panel border-rose">
+          <div class="metric-header">
+            <span class="metric-label">CRITICAL HAZARDS</span>
+            <i class="fa-solid fa-triangle-exclamation text-rose"></i>
+          </div>
+          <div class="metric-value text-rose" id="metricCriticalHazards">--</div>
+          <div class="metric-footnote">Requires &lt; 2h SLA response</div>
+        </div>
+
+        <div class="metric-card glass-panel border-amber">
+          <div class="metric-header">
+            <span class="metric-label">SLA BREACHES</span>
+            <i class="fa-solid fa-clock-rotate-left text-amber"></i>
+          </div>
+          <div class="metric-value text-amber" id="metricSlaBreaches">--</div>
+          <div class="metric-footnote">Auto-escalated to Warden level</div>
+        </div>
+
+        <div class="metric-card glass-panel border-emerald">
+          <div class="metric-header">
+            <span class="metric-label">RESOLUTION RATE</span>
+            <i class="fa-solid fa-circle-check text-emerald"></i>
+          </div>
+          <div class="metric-value text-emerald" id="metricResolutionRate">--%</div>
+          <div class="metric-footnote">Verified & closed with student signoff</div>
+        </div>
+      </div>
+
+      <!-- State Distribution Lifecycle Pipeline -->
+      <div class="glass-panel pipeline-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-arrows-split-up-and-left text-purple"></i>
+            Complaint Finite State Machine (FSM) Distribution
+          </div>
+          <span class="text-muted text-xs">8-Stage Deterministic Lifecycle</span>
+        </div>
+        <div class="fsm-pipeline" id="fsmPipelineContainer">
+          <!-- Dynamically populated states -->
+        </div>
+      </div>
+
+      <!-- Two Column Layout: Active Incident Clusters & Live Feed -->
+      <div class="dashboard-split-grid">
+        <!-- Incident Clusters -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-network-wired text-cyan"></i>
+              Spatial Incident Clusters (Multi-Student Outages)
+            </div>
+            <span class="badge badge-purple" id="clusterCountBadge">0 Clusters</span>
+          </div>
+          <p class="panel-desc">
+            The Autonomous Agent correlates tickets within the same wing/floor to detect common infrastructure faults and prevent duplicate staff dispatches.
+          </p>
+          <div id="clustersList" class="clusters-container">
+            <div class="empty-state">Loading active incident clusters...</div>
+          </div>
+        </div>
+
+        <!-- Priority Attention Tickets -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-fire text-rose"></i>
+              Priority Escalated & Critical Feed
+            </div>
+            <button class="btn btn-xs btn-outline" onclick="loadComplaints()">
+              <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+          </div>
+          <p class="panel-desc">Immediate action required. Monitored by Autonomous SLA Watchdog.</p>
+          <div id="priorityTicketsList" class="priority-tickets-container">
+            <div class="empty-state">Loading priority tickets...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: STUDENT PORTAL ================= -->
+    <section id="tab-student-portal" class="tab-pane">
+      <div class="two-pane-container">
+        <!-- Left: Smart Complaint Submission Form -->
+        <div class="glass-panel form-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-pen-to-square text-cyan"></i>
+              File Intelligent Complaint
+            </div>
+            <span class="badge badge-cyan">AI Pre-Checked</span>
+          </div>
+          <p class="panel-desc">
+            Submit your issue. Our Autonomous Service Agent will instantly triage, calculate SLA, evaluate hostel safety policies, and route to the best technician.
+          </p>
+
+          <form id="complaintForm" class="complaint-form">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Student Full Name *</label>
+                <input type="text" id="inputStudentName" class="form-control" placeholder="e.g. Aryan Sharma" required value="Aryan Sharma">
+              </div>
+              <div class="form-group flex-1">
+                <label>Student ID / Roll No. *</label>
+                <input type="text" id="inputStudentId" class="form-control" placeholder="e.g. 2024CS0142" required value="2024CS0142">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Hostel Block *</label>
+                <select id="inputBlock" class="form-control">
+                  <option value="Block A">Block A (Senior Boys)</option>
+                  <option value="Block B">Block B (Junior Boys)</option>
+                  <option value="Block C">Block C (Girls Wing)</option>
+                  <option value="Block Mess Hall">Central Mess & Dining</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label>Floor *</label>
+                <select id="inputFloor" class="form-control">
+                  <option value="G">Ground Floor</option>
+                  <option value="1">1st Floor</option>
+                  <option value="2">2nd Floor</option>
+                  <option value="3" selected>3rd Floor</option>
+                  <option value="4">4th Floor</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label>Room / Bay Number *</label>
+                <input type="text" id="inputRoom" class="form-control" placeholder="e.g. 304" required value="304">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Category (Optional — AI auto-detects if unspecified)</label>
+              <select id="inputCategory" class="form-control">
+                <option value="">Auto-Detect via AI</option>
+                <option value="Electrical">Electrical (Power, Light, Fan, Geyser, Switch)</option>
+                <option value="Plumbing">Plumbing (Water, Leak, Faucet, Drain, Flush)</option>
+                <option value="Wi-Fi/Network">Wi-Fi & Campus Network</option>
+                <option value="Carpentry">Carpentry & Locksmith (Door, Lock, Furniture)</option>
+                <option value="Mess/Food">Mess Food Quality & Hygiene</option>
+                <option value="Cleanliness/Sanitation">Cleanliness & Waste Management</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Issue Title *</label>
+              <input type="text" id="inputTitle" class="form-control" placeholder="e.g. Bathroom pipe burst and flooding room floor" required>
+            </div>
+
+            <div class="form-group">
+              <label>Detailed Description *</label>
+              <textarea id="inputDescription" class="form-control" rows="4" placeholder="Describe what happened, appliance details, urgency indicators..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Student Contact Phone / WhatsApp</label>
+              <input type="text" id="inputContact" class="form-control" placeholder="+91 99999-00000" value="+91 98765-43210">
+            </div>
+
+            <!-- Real-time AI Pre-Evaluation Card -->
+            <div id="aiPreCheckCard" class="ai-precheck-box hidden">
+              <div class="precheck-title">
+                <i class="fa-solid fa-wand-magic-sparkles text-cyan"></i>
+                Autonomous Agent Live Reasoning Preview:
+              </div>
+              <div class="precheck-details" id="aiPreCheckDetails">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <button type="submit" id="btnSubmitComplaint" class="btn btn-primary btn-block">
+              <i class="fa-solid fa-paper-plane"></i> Submit & Trigger Autonomous Resolution
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Real-time Ticket Status & Verification Hub -->
+        <div class="glass-panel tracking-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-list-check text-emerald"></i>
+              Live Ticket Tracker & Verification Hub
+            </div>
+            <div class="search-box">
+              <input type="text" id="trackerSearch" class="form-control form-control-sm" placeholder="Filter tickets...">
+            </div>
+          </div>
+          <p class="panel-desc">Click any complaint to inspect its state machine audit trail, assigned specialist, and workflow graph.</p>
+
+          <div id="studentTicketsList" class="tickets-stream">
+            <div class="empty-state">Loading your complaints...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: WORKFLOWS & RULES ================= -->
+    <section id="tab-workflow-engine" class="tab-pane">
+      <div class="workflow-layout">
+        <!-- Top Controls: Category & Search Criteria -->
+        <div class="glass-panel workflow-controls-panel">
+          <div class="workflow-header-row">
+            <div>
+              <div class="panel-title">
+                <i class="fa-solid fa-diagram-project text-purple"></i>
+                Graph-Based Resolution Workflow Search Engine
+              </div>
+              <p class="panel-desc">
+                Models repair workflows as a Directed Graph with dependencies, cost estimates, and time metrics. Uses A* / Dijkstra search algorithms to determine optimal execution sequences.
+              </p>
+            </div>
+            <div class="workflow-actions">
+              <select id="wfCategorySelect" class="form-control">
+                <option value="Electrical">Category: Electrical</option>
+                <option value="Plumbing">Category: Plumbing</option>
+                <option value="Wi-Fi/Network">Category: Wi-Fi/Network</option>
+                <option value="Carpentry">Category: Carpentry</option>
+                <option value="Mess/Food">Category: Mess/Food</option>
+                <option value="Cleanliness/Sanitation">Category: Cleanliness</option>
+              </select>
+
+              <select id="wfCriterionSelect" class="form-control">
+                <option value="FASTEST">Criterion: FASTEST (Min Duration)</option>
+                <option value="LOW_COST">Criterion: LOW COST (Min Expense)</option>
+                <option value="COMPREHENSIVE">Criterion: COMPREHENSIVE (Maximum Safety)</option>
+              </select>
+
+              <label class="curfew-toggle-label">
+                <input type="checkbox" id="wfCurfewToggle">
+                <span>Curfew Hours Active (22:00-07:00)</span>
+              </label>
+
+              <button id="btnComputeWorkflow" class="btn btn-primary">
+                <i class="fa-solid fa-route"></i> Search Path
+              </button>
+            </div>
+          </div>
+
+          <!-- Computed Path Metrics Strip -->
+          <div id="wfMetricsStrip" class="wf-metrics-strip">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Middle: Interactive Graph Visualizer -->
+        <div class="glass-panel workflow-graph-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-circle-nodes text-cyan"></i>
+              Directed Resolution Pathway Visualization
+            </div>
+            <span class="badge badge-emerald" id="wfPathStepsBadge">-- Steps</span>
+          </div>
+          <div class="graph-canvas-wrapper" id="workflowGraphContainer">
+            <!-- Dynamic SVG / Node layout -->
+          </div>
+        </div>
+
+        <!-- Bottom: Represented Hostel Rules Engine Inspector -->
+        <div class="glass-panel rules-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-scale-balanced text-amber"></i>
+              Hostel Rules & Policy Knowledge Base
+            </div>
+            <span class="text-xs text-muted">Declarative JSON-Rule Knowledge Engine</span>
+          </div>
+          <p class="panel-desc">
+            Rules governing curfew hours, safety equipment, liability for damages, food safety thresholds, and autonomous escalation matrices.
+          </p>
+          <div class="rules-grid" id="rulesGrid">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: STAFF DISPATCH ================= -->
+    <section id="tab-staff-dispatch" class="tab-pane">
+      <div class="staff-layout">
+        <!-- Technicians Workload Roster -->
+        <div class="glass-panel tech-roster-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-user-shield text-cyan"></i>
+              Staff & Technician Roster (Autonomous Dispatch Targets)
+            </div>
+            <span class="badge badge-outline" id="activeTechCount">-- Staff Active</span>
+          </div>
+          <div class="tech-cards-grid" id="technicianCardsGrid">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Kanban Board of All Tickets by State -->
+        <div class="glass-panel kanban-wrapper-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-table-columns text-emerald"></i>
+              State Machine Kanban Board & Transition Controller
+            </div>
+            <div class="filter-controls">
+              <select id="kanbanCategoryFilter" class="form-control form-control-sm">
+                <option value="ALL">All Categories</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Plumbing">Plumbing</option>
+                <option value="Wi-Fi/Network">Wi-Fi/Network</option>
+                <option value="Carpentry">Carpentry</option>
+                <option value="Mess/Food">Mess/Food</option>
+              </select>
+            </div>
+          </div>
+          <div class="kanban-board" id="kanbanBoard">
+            <!-- Columns: Assigned, In Progress, Escalated, Awaiting Verification, Resolved -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: RESPONSIBLE RAG ASSISTANT ================= -->
+    <section id="tab-rag-assistant" class="tab-pane">
+      <div class="rag-layout">
+        <!-- Chat Area -->
+        <div class="glass-panel chat-container-panel">
+          <div class="panel-header chat-header">
+            <div class="agent-profile">
+              <div class="agent-avatar">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <div>
+                <div class="agent-title">Responsible Hostel Handbook AI Assistant</div>
+                <div class="agent-status">
+                  <span class="pulsing-dot-green"></span>
+                  Grounded with TF-IDF Vector Index & Official Citations
+                </div>
+              </div>
+            </div>
+            <div class="guardrail-badge" title="Safety filters and hallucination barriers active">
+              <i class="fa-solid fa-shield-cat text-emerald"></i> Responsible AI Guardrails Active
+            </div>
+          </div>
+
+          <!-- Chat Conversation Log -->
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-message bot-message">
+              <div class="message-bubble">
+                <p>Hello! I am your <strong>Responsible Hostel AI Assistant</strong>. I am strictly grounded in the university's <em>Hostel Code of Conduct, Maintenance Handbook, Dining Regulations, and Safety Mandates</em>.</p>
+                <p>Every response I provide includes exact clause citations. How can I assist you with hostel guidelines or procedures today?</p>
+              </div>
+              <div class="message-meta">
+                <span class="meta-tag"><i class="fa-solid fa-check-double text-cyan"></i> Verified Grounded</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Suggested Quick Prompts -->
+          <div class="quick-prompts">
+            <button class="prompt-chip" onclick="sendQuickPrompt('What are the quiet hours and maintenance timings?')">
+              Quiet hours & repair timings?
+            </button>
+            <button class="prompt-chip" onclick="sendQuickPrompt('Can I use an electric room heater or immersion rod?')">
+              Are heaters/immersion rods allowed?
+            </button>
+            <button class="prompt-chip" onclick="sendQuickPrompt('How do I apply for a mess rebate if I go home?')">
+              Mess rebate procedure?
+            </button>
+            <button class="prompt-chip" onclick="sendQuickPrompt('Who pays for a broken switchboard or door lock?')">
+              Damage liability & wear-and-tear?
+            </button>
+            <button class="prompt-chip prompt-chip-emergency" onclick="sendQuickPrompt('There is a fire in room 204, urgent!')">
+              🚨 Emergency Fire Protocol
+            </button>
+          </div>
+
+          <!-- Input Bar -->
+          <div class="chat-input-bar">
+            <input type="text" id="chatInput" class="form-control" placeholder="Ask about hostel rules, maintenance procedures, leave policies..." autocomplete="off">
+            <button id="btnSendChat" class="btn btn-primary">
+              <i class="fa-solid fa-paper-plane"></i> Ask AI
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Side: Grounded Rulebook Reference & Citations Library -->
+        <div class="glass-panel citations-library-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="fa-solid fa-book-bookmark text-amber"></i>
+              Indexed Hostel Regulations
+            </div>
+            <span class="badge badge-outline">10 Knowledge Chunks</span>
+          </div>
+          <p class="panel-desc">All responses generated by this assistant are grounded in these official university documents.</p>
+          <div class="knowledge-chunks-list" id="knowledgeChunksList">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL: COMPLAINT DETAIL & AUDIT ================= -->
+  <div id="complaintDetailModal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <div class="modal-title" id="modalComplaintTitle">Ticket Details</div>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalComplaintBody">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Application Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
